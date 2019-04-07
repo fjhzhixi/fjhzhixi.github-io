@@ -79,15 +79,26 @@
 
 
 
+<meta name="description" content="OS-lab2 memory management基本设定 虚拟内存4G大小,分布如下:   物理内存大小为64MB  分页大小为一页4KB 页表结构为两层,页表项大小为4K,即一页页表为1K项,每一项映射4KB即一页大小空间,所以一页页表映射4MB空间 页表第一级为页目录,只有一页,1K项,每一项中保存一个页表的物理首地址 页表第二级为页表,有1K页,每页1K项,每一项中保存一个物理页的首地址">
 <meta name="keywords" content="OS,C">
 <meta property="og:type" content="article">
-<meta property="og:title" content="OS-lab2">
+<meta property="og:title" content="OS">
 <meta property="og:url" content="http://yoursite.com/2019/04/03/OS-lab2/index.html">
 <meta property="og:site_name" content="Matrix">
+<meta property="og:description" content="OS-lab2 memory management基本设定 虚拟内存4G大小,分布如下:   物理内存大小为64MB  分页大小为一页4KB 页表结构为两层,页表项大小为4K,即一页页表为1K项,每一项映射4KB即一页大小空间,所以一页页表映射4MB空间 页表第一级为页目录,只有一页,1K项,每一项中保存一个页表的物理首地址 页表第二级为页表,有1K页,每页1K项,每一项中保存一个物理页的首地址">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-04-03T15:22:56.083Z">
+<meta property="og:image" content="http://yoursite.com/2019/04/03/OS-lab2/mm.png">
+<meta property="og:image" content="http://yoursite.com/2019/04/03/OS-lab2/page.png">
+<meta property="og:image" content="http://yoursite.com/2019/04/03/OS-lab2/summary.png">
+<meta property="og:image" content="http://yoursite.com/2019/04/03/OS-lab2/2.png">
+<meta property="og:image" content="http://yoursite.com/2019/04/03/OS-lab2/3.png">
+<meta property="og:image" content="http://yoursite.com/2019/04/03/OS-lab2/4.png">
+<meta property="og:image" content="http://yoursite.com/2019/04/03/OS-lab2/6.png">
+<meta property="og:updated_time" content="2019-04-07T15:36:56.925Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="OS-lab2">
+<meta name="twitter:title" content="OS">
+<meta name="twitter:description" content="OS-lab2 memory management基本设定 虚拟内存4G大小,分布如下:   物理内存大小为64MB  分页大小为一页4KB 页表结构为两层,页表项大小为4K,即一页页表为1K项,每一项映射4KB即一页大小空间,所以一页页表映射4MB空间 页表第一级为页目录,只有一页,1K项,每一项中保存一个页表的物理首地址 页表第二级为页表,有1K页,每页1K项,每一项中保存一个物理页的首地址">
+<meta name="twitter:image" content="http://yoursite.com/2019/04/03/OS-lab2/mm.png">
 
 
 
@@ -123,7 +134,7 @@
 
 
 
-  <title>OS-lab2 | Matrix</title>
+  <title>OS | Matrix</title>
   
 
 
@@ -277,7 +288,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">OS-lab2</h1>
+          <h1 class="post-title" itemprop="name headline">OS</h1>
         
 
         <div class="post-meta">
@@ -349,7 +360,106 @@
       
 
       
-        
+        <h1 id="OS-lab2-memory-management"><a href="#OS-lab2-memory-management" class="headerlink" title="OS-lab2 memory management"></a>OS-lab2 memory management</h1><h2 id="基本设定"><a href="#基本设定" class="headerlink" title="基本设定"></a>基本设定</h2><ul>
+<li><p>虚拟内存4G大小,分布如下:</p>
+<p><img src="/2019/04/03/OS-lab2/mm.png" alt></p>
+</li>
+<li><p>物理内存大小为64MB</p>
+</li>
+<li>分页大小为一页4KB</li>
+<li>页表结构为两层,页表项大小为4K,即一页页表为1K项,每一项映射4KB即一页大小空间,所以一页页表映射4MB空间</li>
+<li>页表第一级为页目录,只有一页,1K项,每一项中保存一个页表的物理首地址</li>
+<li>页表第二级为页表,有1K页,每页1K项,每一项中保存一个物理页的首地址</li>
+<li><strong>由于自映射机制可知页目录即为某一页页表</strong></li>
+<li><strong>其中<code>kseg0</code>区域的物理虚拟地址转换不需要经过页表,只需要将最高位改变即可</strong></li>
+<li>规定内核映射的虚拟空间范围为<code>0x8001_0000 - 0x8040_0000</code></li>
+</ul>
+<h2 id="基本工具"><a href="#基本工具" class="headerlink" title="基本工具"></a>基本工具</h2><h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><ol>
+<li><p><code>Page</code>物理内存管理单元结构体</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Page</span> &#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> &#123;</span>							</span><br><span class="line">		<span class="class"><span class="keyword">struct</span> <span class="title">Page</span> *<span class="title">le_next</span>;</span>	<span class="comment">// 指向链表中下一个元素</span></span><br><span class="line">		<span class="class"><span class="keyword">struct</span> <span class="title">Page</span> **<span class="title">le_prev</span>;</span>	<span class="comment">// 指向链表中前一个元素中指向后一个的指针(二重指针)</span></span><br><span class="line">	&#125;pp_linhk;	</span><br><span class="line">	u_short pp_ref;	<span class="comment">// 表示该物理页被引用多少次</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>宏定义链表</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 提供了大量的宏定义链表操作</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>	LIST_HEAD(name, type)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>	LIST_HEAD_INITIALIZER(head)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>	LIST_ENTRY(type)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>	LIST_EMPTY(head)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>	LIST_FIRST(head)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>	LIST_FOREACH(var, head, field)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>	LIST_INIT(head)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>	LIST_NEXT(elm, field)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>	LIST_INSERT_AFTER(listelm, elm, field)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>	LIST_INSERT_BEFORE(listelm, elm, field)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>	LIST_INSERT_HEAD(head, elm, field)</span></span><br></pre></td></tr></table></figure>
+<p><strong>该链表设计的巧妙之处在于二重指针<code>*le_prev</code>,该指针指向前一个元素数据域中指向下一个的那个指针,该设计的作用是在删除一个链表节点时只需要有指向该节点的指针即可,即要删除<code>A</code>指向的节点,只需令<code>*(A-&gt;pp_link.le_prev) = A-&gt;pp_link.le_next</code>即可</strong></p>
+</li>
+</ol>
+<h3 id="地址操作"><a href="#地址操作" class="headerlink" title="地址操作"></a>地址操作</h3><ol>
+<li><p>在<code>kseg0</code>中的地址操作只需要改变最高位即可</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在kseg0区域内</span></span><br><span class="line"><span class="comment">// 虚存中的区域起始地址</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ULIM 0x80000000</span></span><br><span class="line"><span class="comment">// 由虚拟地址得到物理地址 : -0x8000_0000</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PADDR(kva)						\</span></span><br><span class="line">(&#123;								\</span><br><span class="line">	u_long a = (u_long) (kva);				\</span><br><span class="line">	<span class="keyword">if</span> (a &lt; ULIM)					\</span><br><span class="line">		panic(<span class="string">"PADDR called with invalid kva %08lx"</span>, a);\</span><br><span class="line">	a - ULIM;						\</span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">// 有物理地址得到虚拟地址 : +0x8000_0000</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> KADDR(pa)						\</span></span><br><span class="line">(&#123;								\</span><br><span class="line">	u_long ppn = PPN(pa);					\</span><br><span class="line">	<span class="keyword">if</span> (ppn &gt;= npage)					\</span><br><span class="line">		panic(<span class="string">"KADDR called with invalid pa %08lx"</span>, (u_long)pa);\</span><br><span class="line">	(pa) + ULIM;					\</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在用户空间中需要使用二级页表结构来实现地址转换</p>
+<ul>
+<li><p>由<strong>硬件完成</strong>的地址映射机制</p>
+<p><img src="/2019/04/03/OS-lab2/page.png" alt></p>
+</li>
+<li><p>在程序中要进行的是在最开始初始化页表,即建立内存管理时<strong>对页表项的填写</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 由虚拟地址得到页目录项的索引</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PDX(va)		((((u_long)(va))&gt;&gt;22) &amp; 0x03FF)</span></span><br><span class="line"><span class="comment">// 由虚拟地址得到页表项的索引</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PTX(va)		((((u_long)(va))&gt;&gt;12) &amp; 0x03FF)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">注意 :</span></span><br><span class="line"><span class="comment">所有的虚拟地址都通过u_long类型的指针表示,因为u_long类型占4B空间,刚好时页表或页目录一项的大小,这样首地址加索引便是指向某一项的指针(类似于数组,利用了一页空间的连续性)</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p><strong>有关对齐</strong></p>
+<ul>
+<li><p>在页表中每一项按字(4B)对齐</p>
+</li>
+<li><p><strong>在分配物理内存时按页(4KB)分配对齐</strong></p>
+</li>
+<li><p><strong>地址对齐函数</strong> :</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BY2PG		4096	<span class="comment">// 4KB</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ROUND(a, n)	(((((u_long)(a))+(n)-1)) &amp; ~((n)-1))</span></span><br><span class="line"><span class="comment">// 将address按4KB对齐</span></span><br><span class="line">address = ROUND(address, BY2PG);</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="基本思路"><a href="#基本思路" class="headerlink" title="基本思路"></a>基本思路</h2><h3 id="从物理虚拟内存角度"><a href="#从物理虚拟内存角度" class="headerlink" title="从物理虚拟内存角度"></a>从物理虚拟内存角度</h3><ul>
+<li>对物理内存的管理依赖于<code>Page</code>结构体数组<code>pages[]</code>,以及由数组中的某些项链接构成的可使用空闲物理页<code>page_free_list</code></li>
+<li><p>对虚拟内存的管理依赖</p>
+<ul>
+<li><code>kseg0</code>中虚实地址直接转换</li>
+<li><code>kuseg</code>中利用二级页表进行虚实地址转换</li>
+</ul>
+</li>
+<li><strong>在程序中直接访问的一定是虚拟地址,但是可能写入的数据是物理地址 : 例如填写页表项</strong></li>
+</ul>
+<h3 id="从构建阶段角度"><a href="#从构建阶段角度" class="headerlink" title="从构建阶段角度"></a>从构建阶段角度</h3><ul>
+<li>在物理内存被页式管理之前,使用<code>alloc</code>函数来分配固定大小的物理内存</li>
+<li>在物理内存被页式管理之后,从<code>page_free_list</code>中取空闲的物理页分配</li>
+</ul>
+<h2 id="流程分析"><a href="#流程分析" class="headerlink" title="流程分析"></a>流程分析</h2><h3 id="加载内核"><a href="#加载内核" class="headerlink" title="加载内核"></a>加载内核</h3><p>内核在虚拟地址空间的<code>kseg0</code>中的<code>0x8001_0000 - 0x8040_0000</code>中</p>
+<p>映射到物理空间是<code>0x0001_0000 - 0x0040_0000</code>区域</p>
+<h3 id="初始化内存管理"><a href="#初始化内存管理" class="headerlink" title="初始化内存管理"></a>初始化内存管理</h3><p>从<code>mips_init</code>函数入手,总流程如下图</p>
+<p> <img src="/2019/04/03/OS-lab2/summary.png" alt></p>
+<p><strong>其他都好理解,难点在于<code>boot_map_segment</code>函数</strong></p>
+<p>该函数的作用是建立将分配好物理内存的<code>pages[]</code>通过建立页表,填写页表项,填写页目录项映射到虚拟空间中的<code>kuseg</code>区间中</p>
+<p><code>boot_map_segment(pdgir, UPAGES, n, PADDR(pages), PTE_R)</code></p>
+<ul>
+<li><p>参数说明 :</p>
+<ul>
+<li><code>pgdir(*u_long)</code> : 之前建立的页目录的起始虚地址</li>
+<li><code>UPAGES(u_long)</code> : 虚拟空间用户空间中的<code>PAGES</code>段起始地址</li>
+<li><code>n(u_long)</code> : <code>pages[]</code>占用的空间页数</li>
+<li><code>PADDR(pages)</code> : <code>pages[]</code>占用的物理空间的起始地址</li>
+</ul>
+</li>
+<li><p>具体流程 :</p>
+<ol>
+<li>对虚拟空间中的每一页调用<code>boot_pgdir_walk(pgdir, va , 1)</code><ol>
+<li>由<code>pgdir + PDX(va)</code>得到<code>va</code>对应的页目录项地址</li>
+<li>取出页目录项值 : 必为无效值<ol>
+<li>从物理内存中使用<code>alloc</code>分配一页并映射到<code>kseg0</code>空间作为该项对应一页页表,返回该页虚拟起始地址<code>pgtable</code></li>
+<li>将该页物理地址<code>KADDR(pgtable)</code>填入页目录项中</li>
+</ol>
+</li>
+<li>由<code>pgtable + PTX(va)</code>得到该建立的页表中<code>va</code>对应的页表项地址</li>
+</ol>
+</li>
+<li>将该页对应的物理地址填入页表项中</li>
+</ol>
+</li>
+</ul>
+<h3 id="图解流程"><a href="#图解流程" class="headerlink" title="图解流程"></a>图解流程</h3><h2 id="加载内核-1"><a href="#加载内核-1" class="headerlink" title="加载内核"></a>加载内核</h2><p><img src="/2019/04/03/OS-lab2/2.png" alt></p>
+<h2 id="创建页目录"><a href="#创建页目录" class="headerlink" title="创建页目录"></a>创建页目录</h2><p><img src="/2019/04/03/OS-lab2/3.png" alt></p>
+<h2 id="创建物理块并建立它的二级页表映射"><a href="#创建物理块并建立它的二级页表映射" class="headerlink" title="创建物理块并建立它的二级页表映射"></a>创建物理块并建立它的二级页表映射</h2><p><img src="/2019/04/03/OS-lab2/4.png" alt></p>
+<h2 id="页结构内存管理"><a href="#页结构内存管理" class="headerlink" title="页结构内存管理"></a>页结构内存管理</h2><p><img src="/2019/04/03/OS-lab2/6.png" alt></p>
+
       
     </div>
     
@@ -381,8 +491,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/02/28/Java正则表达式/" rel="next" title="Java-Regular-expression">
-                <i class="fa fa-chevron-left"></i> Java-Regular-expression
+              <a href="/2019/02/28/cmd-command/" rel="next" title="cmd command">
+                <i class="fa fa-chevron-left"></i> cmd command
               </a>
             
           </div>
@@ -441,8 +551,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -502,6 +621,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#OS-lab2-memory-management"><span class="nav-number">1.</span> <span class="nav-text">OS-lab2 memory management</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本设定"><span class="nav-number">1.1.</span> <span class="nav-text">基本设定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本工具"><span class="nav-number">1.2.</span> <span class="nav-text">基本工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据结构"><span class="nav-number">1.2.1.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#地址操作"><span class="nav-number">1.2.2.</span> <span class="nav-text">地址操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本思路"><span class="nav-number">1.3.</span> <span class="nav-text">基本思路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#从物理虚拟内存角度"><span class="nav-number">1.3.1.</span> <span class="nav-text">从物理虚拟内存角度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从构建阶段角度"><span class="nav-number">1.3.2.</span> <span class="nav-text">从构建阶段角度</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#流程分析"><span class="nav-number">1.4.</span> <span class="nav-text">流程分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#加载内核"><span class="nav-number">1.4.1.</span> <span class="nav-text">加载内核</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#初始化内存管理"><span class="nav-number">1.4.2.</span> <span class="nav-text">初始化内存管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#图解流程"><span class="nav-number">1.4.3.</span> <span class="nav-text">图解流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#加载内核-1"><span class="nav-number">1.5.</span> <span class="nav-text">加载内核</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建页目录"><span class="nav-number">1.6.</span> <span class="nav-text">创建页目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建物理块并建立它的二级页表映射"><span class="nav-number">1.7.</span> <span class="nav-text">创建物理块并建立它的二级页表映射</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#页结构内存管理"><span class="nav-number">1.8.</span> <span class="nav-text">页结构内存管理</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
