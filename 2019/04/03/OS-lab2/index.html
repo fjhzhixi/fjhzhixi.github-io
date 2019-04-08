@@ -94,7 +94,7 @@
 <meta property="og:image" content="http://yoursite.com/2019/04/03/OS-lab2/3.png">
 <meta property="og:image" content="http://yoursite.com/2019/04/03/OS-lab2/4.png">
 <meta property="og:image" content="http://yoursite.com/2019/04/03/OS-lab2/6.png">
-<meta property="og:updated_time" content="2019-04-07T15:36:56.925Z">
+<meta property="og:updated_time" content="2019-04-08T14:15:30.123Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="OS">
 <meta name="twitter:description" content="OS-lab2 memory management基本设定 虚拟内存4G大小,分布如下:   物理内存大小为64MB  分页大小为一页4KB 页表结构为两层,页表项大小为4K,即一页页表为1K项,每一项映射4KB即一页大小空间,所以一页页表映射4MB空间 页表第一级为页目录,只有一页,1K项,每一项中保存一个页表的物理首地址 页表第二级为页表,有1K页,每页1K项,每一项中保存一个物理页的首地址">
@@ -455,10 +455,121 @@
 </ol>
 </li>
 </ul>
-<h3 id="图解流程"><a href="#图解流程" class="headerlink" title="图解流程"></a>图解流程</h3><h2 id="加载内核-1"><a href="#加载内核-1" class="headerlink" title="加载内核"></a>加载内核</h2><p><img src="/2019/04/03/OS-lab2/2.png" alt></p>
-<h2 id="创建页目录"><a href="#创建页目录" class="headerlink" title="创建页目录"></a>创建页目录</h2><p><img src="/2019/04/03/OS-lab2/3.png" alt></p>
-<h2 id="创建物理块并建立它的二级页表映射"><a href="#创建物理块并建立它的二级页表映射" class="headerlink" title="创建物理块并建立它的二级页表映射"></a>创建物理块并建立它的二级页表映射</h2><p><img src="/2019/04/03/OS-lab2/4.png" alt></p>
-<h2 id="页结构内存管理"><a href="#页结构内存管理" class="headerlink" title="页结构内存管理"></a>页结构内存管理</h2><p><img src="/2019/04/03/OS-lab2/6.png" alt></p>
+<h3 id="图解流程"><a href="#图解流程" class="headerlink" title="图解流程"></a>图解流程</h3><h4 id="加载内核-1"><a href="#加载内核-1" class="headerlink" title="加载内核"></a>加载内核</h4><p><img src="/2019/04/03/OS-lab2/2.png" alt></p>
+<h4 id="创建页目录"><a href="#创建页目录" class="headerlink" title="创建页目录"></a>创建页目录</h4><p><img src="/2019/04/03/OS-lab2/3.png" alt></p>
+<h4 id="创建物理块并建立它的二级页表映射"><a href="#创建物理块并建立它的二级页表映射" class="headerlink" title="创建物理块并建立它的二级页表映射"></a>创建物理块并建立它的二级页表映射</h4><p><img src="/2019/04/03/OS-lab2/4.png" alt></p>
+<h4 id="页结构内存管理"><a href="#页结构内存管理" class="headerlink" title="页结构内存管理"></a>页结构内存管理</h4><p><img src="/2019/04/03/OS-lab2/6.png" alt></p>
+<h2 id="初始化之后的内存操作"><a href="#初始化之后的内存操作" class="headerlink" title="初始化之后的内存操作"></a>初始化之后的内存操作</h2><p><strong>在初始化之后所有的内存操作都要基于页结构来完成,不能再使用<code>alloc</code>函数直接分配</strong></p>
+<h3 id="基本工具-1"><a href="#基本工具-1" class="headerlink" title="基本工具"></a>基本工具</h3><p><strong>利用了物理内存控制块对应物理内存的连续性以及页对齐的特性</strong></p>
+<ul>
+<li><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 由该页的控制块获得其在pages[]中的下标</span></span><br><span class="line">page2ppn(struct Page *pp)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> pp - pages;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>由物理页的控制块指针获得其物理地址</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PGSHIFT		12</span></span><br><span class="line">page2pa(struct Page *pp)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 获得下标之后即代表是第几个物理页,一页4KB,所以左移12位即可得到物理地址</span></span><br><span class="line">	<span class="keyword">return</span> page2ppn(pp)&lt;&lt;PGSHIFT;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>由物理地址得到指向其控制块的指针</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 物理地址右移12位得到该物理页对应控制块在pages[]中的下标</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PPN(va)		(((u_long)(va))&gt;&gt;12)</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> struct Page *<span class="title">pa2page</span><span class="params">(u_long pa)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (PPN(pa) &gt;= npage)</span><br><span class="line">		panic(<span class="string">"pa2page called with invalid pa: %x"</span>, pa);</span><br><span class="line">    <span class="comment">// 返回控制块指针</span></span><br><span class="line">	<span class="keyword">return</span> &amp;pages[PPN(pa)];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="基本函数"><a href="#基本函数" class="headerlink" title="基本函数"></a>基本函数</h3><ul>
+<li><p><code>int page_alloc(struct Page **pp)</code> :</p>
+<ul>
+<li>函数功能 : 在<code>page_free_list</code>中找到一个空闲页清空之后让<code>*pp</code>指向该节点</li>
+<li>分配成功返回0.否则返回<code>-E_NO_MEM</code></li>
+</ul>
+</li>
+<li><p><code>void page_free(struct Page *pp)</code> :</p>
+<ul>
+<li>函数功能 : 如果控制块<code>pp</code>代表的物理地址的引用<code>pp_ref</code>为0的话则将该控制块加入空闲页链表<code>page_free_list</code></li>
+</ul>
+</li>
+<li><p><strong>重要的基本函数</strong> :</p>
+<p><code>int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte)</code> :</p>
+<ul>
+<li><p>函数功能 : 查找<code>va</code>对应的页表项的指针赋值给<code>*ppte</code>,若没有则新分配一页页表,并将分配的页表的物理地址填入页目录的对应项,将页表项的指针赋值给<code>*ppte</code></p>
+</li>
+<li><p>参数定义 :</p>
+<ul>
+<li><code>pgdir</code>为页目录起始虚地址</li>
+<li><code>va</code>为要访问的虚地址</li>
+<li><code>create = 1</code>时若缺失则建立映射</li>
+<li><code>*ppte</code> : 指向<code>va</code>对应的页表项</li>
+</ul>
+</li>
+<li><p>函数流程 :</p>
+<ol>
+<li><p>查找页目录项 :</p>
+<p><code>Pde *pgdir_entryp = pgdir+PDX(va);</code></p>
+</li>
+<li><p>获得页目录项内容(<code>*pgdir_entryp</code>),即页表(<code>kseg0</code>中)的起始物理地址,并转换为虚拟地址</p>
+<p><code>pgtable = KADDR(PTE_ADDR(*pgdir_entryp));</code></p>
+</li>
+<li><p>检查页目录项内容是否有效</p>
+<ol>
+<li>若无效且<code>creat == 1</code> : 从空闲链表<code>page_free_list</code>中拿出一页内存(<code>ppage</code>)作为页表并映射到<code>kseg0</code>,<ol>
+<li>使用<code>page_alloc(&amp;ppage)</code>分配</li>
+<li>使用<code>ppage_pa = page2pa(page)</code>得到页表起始物理地址</li>
+<li>使用<code>pgtable = KADDR(ppage_pa)</code>得到页表起始虚拟地址</li>
+<li><strong>使用<code>*pgdir_entryp = page2pa(ppage)|PTE_V;</code>将<code>ppage_pa</code>填入页目录项中</strong></li>
+</ol>
+</li>
+<li>若有效则无操作</li>
+</ol>
+</li>
+<li><p>使用<code>*ppte = pgtable + PTX(va);</code>将<code>*ppte</code>指向<code>va</code>对应的页表项</p>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+<li><p><code>int page_insert(Pde *pgdir, struct Page *pp, u_long va, u_int perm)</code></p>
+<ul>
+<li><p>函数功能 : <strong>以<code>perm</code>的权限建立<code>va</code>到<code>pp</code>的二级页表映射</strong></p>
+<p>检查<code>va</code>对应的页表项的值 : </p>
+<p><code>pgdir_walk(pgdir, va, 0, &amp;pgtable_entry)</code></p>
+<ul>
+<li><p>若页表项存在 : </p>
+<ul>
+<li><p>若对应<code>pp</code> : 增加<code>perm</code>权限 <code>*pgtable_entry = (page2pa(pp) | PERM)</code></p>
+</li>
+<li><p>若不对应<code>pp</code> : 则从该页表中删除<code>va</code>对应的映射关系</p>
+<p><code>page_remove(pgdir, va)</code></p>
+</li>
+</ul>
+</li>
+<li><p>若页表项不存在或不对应<code>pp</code></p>
+<ol>
+<li><p>申请一页新的页表并写入页目录中</p>
+<p><code>pgdir_walk(pgdir, va, 1, &amp;pgtable_entry)</code></p>
+</li>
+<li><p>页表中对应项页权限位写入<code>pp</code>对应的物理地址,即建立<code>va</code>到<code>pp</code>的二级页表映射</p>
+<p><code>*pgtable_entry = (page2pa(pp) | PERM)</code></p>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><code>struct Page *page_lookup(Pde *pgdir, u_long va, Pte **ppte)</code></p>
+<ul>
+<li>函数功能 :<ul>
+<li>返回<code>va</code>虚拟地址对应的页控制块的指针</li>
+<li><code>*ppte</code>赋值指向<code>va</code>对应的页表项</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><code>void page_remove(Pde *pgdir, u_long va)</code></p>
+<ul>
+<li>函数功能 : <ol>
+<li>删除<code>va</code>对应的页表项中的映射关系(即置0),对应物理块的引用<code>pp_ref</code>减一</li>
+<li>如果删除后引用次数为0.则释放该页<code>page_free(ppage)</code></li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
 
       
     </div>
@@ -491,8 +602,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/02/28/cmd-command/" rel="next" title="cmd command">
-                <i class="fa fa-chevron-left"></i> cmd command
+              <a href="/2019/02/28/Java正则表达式/" rel="next" title="Java-Regular-expression">
+                <i class="fa fa-chevron-left"></i> Java-Regular-expression
               </a>
             
           </div>
@@ -631,7 +742,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#OS-lab2-memory-management"><span class="nav-number">1.</span> <span class="nav-text">OS-lab2 memory management</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本设定"><span class="nav-number">1.1.</span> <span class="nav-text">基本设定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本工具"><span class="nav-number">1.2.</span> <span class="nav-text">基本工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据结构"><span class="nav-number">1.2.1.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#地址操作"><span class="nav-number">1.2.2.</span> <span class="nav-text">地址操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本思路"><span class="nav-number">1.3.</span> <span class="nav-text">基本思路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#从物理虚拟内存角度"><span class="nav-number">1.3.1.</span> <span class="nav-text">从物理虚拟内存角度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从构建阶段角度"><span class="nav-number">1.3.2.</span> <span class="nav-text">从构建阶段角度</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#流程分析"><span class="nav-number">1.4.</span> <span class="nav-text">流程分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#加载内核"><span class="nav-number">1.4.1.</span> <span class="nav-text">加载内核</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#初始化内存管理"><span class="nav-number">1.4.2.</span> <span class="nav-text">初始化内存管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#图解流程"><span class="nav-number">1.4.3.</span> <span class="nav-text">图解流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#加载内核-1"><span class="nav-number">1.5.</span> <span class="nav-text">加载内核</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建页目录"><span class="nav-number">1.6.</span> <span class="nav-text">创建页目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建物理块并建立它的二级页表映射"><span class="nav-number">1.7.</span> <span class="nav-text">创建物理块并建立它的二级页表映射</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#页结构内存管理"><span class="nav-number">1.8.</span> <span class="nav-text">页结构内存管理</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#OS-lab2-memory-management"><span class="nav-number">1.</span> <span class="nav-text">OS-lab2 memory management</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本设定"><span class="nav-number">1.1.</span> <span class="nav-text">基本设定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本工具"><span class="nav-number">1.2.</span> <span class="nav-text">基本工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据结构"><span class="nav-number">1.2.1.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#地址操作"><span class="nav-number">1.2.2.</span> <span class="nav-text">地址操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本思路"><span class="nav-number">1.3.</span> <span class="nav-text">基本思路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#从物理虚拟内存角度"><span class="nav-number">1.3.1.</span> <span class="nav-text">从物理虚拟内存角度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从构建阶段角度"><span class="nav-number">1.3.2.</span> <span class="nav-text">从构建阶段角度</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#流程分析"><span class="nav-number">1.4.</span> <span class="nav-text">流程分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#加载内核"><span class="nav-number">1.4.1.</span> <span class="nav-text">加载内核</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#初始化内存管理"><span class="nav-number">1.4.2.</span> <span class="nav-text">初始化内存管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#图解流程"><span class="nav-number">1.4.3.</span> <span class="nav-text">图解流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#加载内核-1"><span class="nav-number">1.4.3.1.</span> <span class="nav-text">加载内核</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#创建页目录"><span class="nav-number">1.4.3.2.</span> <span class="nav-text">创建页目录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#创建物理块并建立它的二级页表映射"><span class="nav-number">1.4.3.3.</span> <span class="nav-text">创建物理块并建立它的二级页表映射</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#页结构内存管理"><span class="nav-number">1.4.3.4.</span> <span class="nav-text">页结构内存管理</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#初始化之后的内存操作"><span class="nav-number">1.5.</span> <span class="nav-text">初始化之后的内存操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本工具-1"><span class="nav-number">1.5.1.</span> <span class="nav-text">基本工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基本函数"><span class="nav-number">1.5.2.</span> <span class="nav-text">基本函数</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
