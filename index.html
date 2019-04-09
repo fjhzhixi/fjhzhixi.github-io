@@ -259,6 +259,233 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/09/cache结构/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="fjh">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Matrix">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/04/09/cache结构/" itemprop="url">访存结构</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-04-09T12:06:36+08:00">
+                2019-04-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Cache"><a href="#Cache" class="headerlink" title="Cache"></a>Cache</h1><h2 id="cache的工作原理"><a href="#cache的工作原理" class="headerlink" title="cache的工作原理"></a>cache的工作原理</h2><p>基本的<code>cache</code>一项至少包含数据信息以及标记位</p>
+<p>现代体系结构中的<code>cache</code>多采用组相联,多级<code>cache</code>结构</p>
+<p>为方便起见以下使用一级<code>cache</code>说明,多级就等价于将低级<code>cache</code>看做是高级<code>cache</code>的高速缓存</p>
+<ol>
+<li>通过地址获得在<code>cache</code>中的索引</li>
+<li>由索引得到<code>cache</code>中的一组,比较该组中各项的标记是否与给出地址符合</li>
+<li>比较后 :<ul>
+<li>若存在符合,则<code>cache</code>命中,返回得到的物理内存中的数据值</li>
+<li>若不存在符合,<strong>则产生缺失,这时需要到内存中(实际上一般是下一级<code>cache</code>)中寻找该地址对应的数据,并将该数据写到<code>cache</code>中来</strong></li>
+</ul>
+</li>
+</ol>
+<p><img src="/2019/04/09/cache结构/cache-work.png" alt></p>
+<p>注 : 在<code>cache</code>使用实际中涉及缺失时的替换策略,写时的数据一致性等等工程细节问题,此处只做简单说明</p>
+<ul>
+<li><p>替换策略 : 随机替换,最近最少使用策略,先进先出策略</p>
+<p><strong>在考虑策略时要注意硬件实现的复杂性</strong></p>
+</li>
+<li><p>写操作一致性 : </p>
+<ul>
+<li>写回法 : 暂时只向<code>cache</code>中写入,并标记是否修改,直到该块被替换出去才将值写会内存中</li>
+<li>写直达 : 在每次写<code>cache</code>的同时也写入内存中</li>
+</ul>
+</li>
+</ul>
+<h2 id="cache结构种类"><a href="#cache结构种类" class="headerlink" title="cache结构种类"></a>cache结构种类</h2><h3 id="VIVT"><a href="#VIVT" class="headerlink" title="VIVT"></a>VIVT</h3><p><code>Virtual index Virtual Tag</code> : 使用虚拟地址索引域和虚拟地址的标记位,其中存储的是其对应物理内存的数据值</p>
+<ul>
+<li><p>优势 :</p>
+<p>直接使用CPU发出的虚拟地址的索引域和标记域来查找<code>cache line</code>,而不用经过<code>MMU</code>的翻译,所以查找的速度是最快的</p>
+</li>
+<li><p>问题 :</p>
+<ul>
+<li><code>synonyms</code> : 多个不同的虚拟地址可能会被映射到同一个物理地址,即缓存别名情况<ol>
+<li>例如在多进程通信时,多个虚拟地址映射到一个物理地址,导致<strong>同一个物理地址有多个高速缓存</strong>,对任何一个缓存的修改都会导致数据不一致</li>
+</ol>
+</li>
+<li><code>homonyms</code> : 相同的虚拟地址指向不同的物理地址,<strong>这种情况下仅仅依靠<code>Virtual Index</code>无法区分这些相同的<code>cache</code>项</strong><ol>
+<li>在不同的进程中可能出现该情况</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="VIPT"><a href="#VIPT" class="headerlink" title="VIPT"></a>VIPT</h3><p><code>Virtual Index Physical Tag</code>：使用虚拟地址的索引域和物理地址的标记域,其中存储在内存中物理地址的数据值,<strong>这种方法综合较优</strong></p>
+<ul>
+<li><p>优势 :</p>
+<p><strong>可以通过一定程度的并行设计来提高访存效率</strong></p>
+<ol>
+<li><p><code>CPU</code>指令给出虚拟地址 :</p>
+<ul>
+<li><p>虚拟地址进入<code>cache</code>结构寻找对应的组</p>
+</li>
+<li><p>虚拟地址进入<code>TLB</code>结构查询是否有对应的物理页号生成物理地址</p>
+</li>
+</ul>
+</li>
+<li><p>得到物理地址后作为生成<code>tag</code>访问对应的缓存项</p>
+</li>
+<li><p>检查是否命中 :</p>
+<ul>
+<li>命中则返回数据</li>
+<li>没有命中则根据物理地址访问内存</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><p>问题解决 :</p>
+<ul>
+<li><p>显然,由于是通过物理地址的标记位来确定是否命中的,所以不存在相同的虚拟地址指向不同物理地址的情况</p>
+</li>
+<li><p>对于<code>synonyms</code>问题 :</p>
+<p>把握一点 : <strong>虚实地址的映射关系是通过页结构完成的,即页对齐思想</strong></p>
+<p>以4KB大小为一页来分析 :</p>
+<ol>
+<li><strong>相互对应的虚拟和物理地址的页内偏移一定相同,即低12位一定相同</strong></li>
+<li>当多个虚拟地址映射到同一个物理地址时,这些虚拟地址的低12位一定是相同的</li>
+<li>只要项内偏移 + <code>cache</code>索引没有超过12位,则这些虚拟地址对应同一个<code>cache</code>组,而物理标记位一定是唯一的,所以对应同一项</li>
+<li>所以不会出现缓存别名情况</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="PIPT"><a href="#PIPT" class="headerlink" title="PIPT"></a>PIPT</h3><p><code>Physical Index Physical Tag</code>：使用物理地址的索引域和物理地址的标记域</p>
+<p><strong>问题在于访存太慢</strong></p>
+<ol>
+<li><code>CPU</code>给出虚拟地址来访问数据，<code>TLB</code>接收到这个地址之后查找是否有对应的页表项。</li>
+<li>假设页表项存在，则根据物理地址在<code>cache</code>中查询；如果不存在，则<code>MMU</code>执行正常的页表查询工作之后再根据物理地址在<code>cache</code>中查询，同时更新<code>TLB</code>中的内容。</li>
+<li>如果<code>cache</code>命中，则直接返回给<code>CPU</code>数据；如果没有命中则按照相应的算法进行cache<code>的替换或者装填，之后返回给</code>CPU`数据。</li>
+</ol>
+<p><strong>当<code>TLB</code>没用命中但是这个地址是在<code>cache</code>中时会带来巨大的性能损失</strong></p>
+<p><img src="/2019/04/09/cache结构/PIPT.png" alt></p>
+<h1 id="TLB"><a href="#TLB" class="headerlink" title="TLB"></a>TLB</h1><p><strong><code>TLB</code>本质上就是页表结构的<code>cache</code></strong></p>
+<h2 id="页表的使用"><a href="#页表的使用" class="headerlink" title="页表的使用"></a>页表的使用</h2><p>实现从<code>VPN--&gt;PPN</code>的转换</p>
+<p><img src="/2019/04/09/cache结构/page.png" alt></p>
+<p>注 : </p>
+<ul>
+<li><code>V</code>是标记位,标记该页表项是否有效</li>
+<li><code>AR</code>是权限位,检查访存权限</li>
+</ul>
+<h2 id="TLB中的信息"><a href="#TLB中的信息" class="headerlink" title="TLB中的信息"></a>TLB中的信息</h2><p><strong><code></code>TLB<code>作为一种特殊的</code>cache`结构工作</strong></p>
+<ul>
+<li>访问时使用的<code>index</code>是<code>VPN</code>的低位</li>
+<li>判断使用命中时使用的<code>tag</code>是<code>VPN</code>的高位</li>
+<li>每一项中存储的信息包括比较时使用的<code>tag</code>以及真正使用的数据<code>PPN</code>(含标记位)</li>
+</ul>
+<p><img src="/2019/04/09/cache结构/TLB.png" alt></p>
+<h1 id="cache-TLB-工作"><a href="#cache-TLB-工作" class="headerlink" title="cache + TLB 工作"></a>cache + TLB 工作</h1><p><img src="/2019/04/09/cache结构/TLB+Cache.png" alt></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/03/OS-lab2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -278,7 +505,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/04/03/OS-lab2/" itemprop="url">OS</a></h1>
+                <a class="post-title-link" href="/2019/04/03/OS-lab2/" itemprop="url">OS-lab2</a></h1>
         
 
         <div class="post-meta">
@@ -610,6 +837,192 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/28/cmd-command/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="fjh">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Matrix">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/02/28/cmd-command/" itemprop="url">cmd command</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-28T20:54:56+08:00">
+                2019-02-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/command/" itemprop="url" rel="index">
+                    <span itemprop="name">command</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="常用cmd命令"><a href="#常用cmd命令" class="headerlink" title="常用cmd命令"></a>常用cmd命令</h1><h2 id="目录操作"><a href="#目录操作" class="headerlink" title="目录操作"></a>目录操作</h2><ul>
+<li><p>进入首层盘 </p>
+<p><code>D:</code></p>
+</li>
+<li><p>进入其他文件夹</p>
+<p><code>cd [foldername]</code></p>
+</li>
+<li><p>返回上一层</p>
+<p><code>cd ..</code></p>
+</li>
+<li><p>查看目录文件</p>
+<p><code>dir</code></p>
+</li>
+</ul>
+<h2 id="文件操作"><a href="#文件操作" class="headerlink" title="文件操作"></a>文件操作</h2><ul>
+<li><p>创建目录</p>
+<p><code>md [foldername]</code></p>
+</li>
+<li><p>删除目录</p>
+<p><code>rd [foldername]</code></p>
+</li>
+<li><p>复制文件</p>
+<p><code>copy sourcePath destinationPath</code></p>
+</li>
+<li><p>移动文件(剪切+粘贴)</p>
+<p><code>move sourcePath destinationPath</code></p>
+</li>
+<li><p>删除文件(不能文件夹)</p>
+<p><code>del filename</code></p>
+</li>
+</ul>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><ul>
+<li><p>清除屏幕</p>
+<p><code>cls</code></p>
+</li>
+<li><p>查看本机ip</p>
+<p><code>ipconfig</code></p>
+</li>
+</ul>
+<h2 id="通用"><a href="#通用" class="headerlink" title="通用"></a>通用</h2><ul>
+<li><p><code>help</code>命令查看所有<code>dos</code>命令</p>
+</li>
+<li><p>在任何一个命令后<code>+ /?</code>查看其他属性(包括用法和参数)</p>
+</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/28/Java正则表达式/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -821,192 +1234,6 @@
 <p><strong>matcher从开始到结尾扫描字符串,每次返回一次的匹配结果</strong></p>
 </li>
 <li><p><code>matcher</code>提供<code>start()与end()</code>方法返回每次匹配的位置</p>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/28/cmd-command/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="fjh">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Matrix">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/02/28/cmd-command/" itemprop="url">cmd command</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-28T20:54:56+08:00">
-                2019-02-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/command/" itemprop="url" rel="index">
-                    <span itemprop="name">command</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="常用cmd命令"><a href="#常用cmd命令" class="headerlink" title="常用cmd命令"></a>常用cmd命令</h1><h2 id="目录操作"><a href="#目录操作" class="headerlink" title="目录操作"></a>目录操作</h2><ul>
-<li><p>进入首层盘 </p>
-<p><code>D:</code></p>
-</li>
-<li><p>进入其他文件夹</p>
-<p><code>cd [foldername]</code></p>
-</li>
-<li><p>返回上一层</p>
-<p><code>cd ..</code></p>
-</li>
-<li><p>查看目录文件</p>
-<p><code>dir</code></p>
-</li>
-</ul>
-<h2 id="文件操作"><a href="#文件操作" class="headerlink" title="文件操作"></a>文件操作</h2><ul>
-<li><p>创建目录</p>
-<p><code>md [foldername]</code></p>
-</li>
-<li><p>删除目录</p>
-<p><code>rd [foldername]</code></p>
-</li>
-<li><p>复制文件</p>
-<p><code>copy sourcePath destinationPath</code></p>
-</li>
-<li><p>移动文件(剪切+粘贴)</p>
-<p><code>move sourcePath destinationPath</code></p>
-</li>
-<li><p>删除文件(不能文件夹)</p>
-<p><code>del filename</code></p>
-</li>
-</ul>
-<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><ul>
-<li><p>清除屏幕</p>
-<p><code>cls</code></p>
-</li>
-<li><p>查看本机ip</p>
-<p><code>ipconfig</code></p>
-</li>
-</ul>
-<h2 id="通用"><a href="#通用" class="headerlink" title="通用"></a>通用</h2><ul>
-<li><p><code>help</code>命令查看所有<code>dos</code>命令</p>
-</li>
-<li><p>在任何一个命令后<code>+ /?</code>查看其他属性(包括用法和参数)</p>
 </li>
 </ul>
 
@@ -1398,7 +1625,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
