@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT">
+  <meta name="keywords" content="OS,">
 
 
 
@@ -79,17 +79,18 @@
 
 
 
-<meta name="description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+<meta name="description" content="PV操作实现Write-Read模型写优先级123456789101112131415161718192021222324252627282930313233343536373839404142int readcount = 0;	//当前读者数目int writecount = 0;semaphore rmutex = 1;	//保护readcount的互斥信号量semaphore wmutex">
+<meta name="keywords" content="OS">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hello World">
-<meta property="og:url" content="http://yoursite.com/2019/02/28/hello-world/index.html">
+<meta property="og:title" content="Write-Read">
+<meta property="og:url" content="http://yoursite.com/2019/04/12/Write-Read/index.html">
 <meta property="og:site_name" content="Matrix">
-<meta property="og:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+<meta property="og:description" content="PV操作实现Write-Read模型写优先级123456789101112131415161718192021222324252627282930313233343536373839404142int readcount = 0;	//当前读者数目int writecount = 0;semaphore rmutex = 1;	//保护readcount的互斥信号量semaphore wmutex">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-02-28T10:04:45.150Z">
+<meta property="og:updated_time" content="2019-04-12T12:30:46.955Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hello World">
-<meta name="twitter:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick">
+<meta name="twitter:title" content="Write-Read">
+<meta name="twitter:description" content="PV操作实现Write-Read模型写优先级123456789101112131415161718192021222324252627282930313233343536373839404142int readcount = 0;	//当前读者数目int writecount = 0;semaphore rmutex = 1;	//保护readcount的互斥信号量semaphore wmutex">
 
 
 
@@ -119,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/02/28/hello-world/">
+  <link rel="canonical" href="http://yoursite.com/2019/04/12/Write-Read/">
 
 
 
 
 
-  <title>Hello World | Matrix</title>
+  <title>Write-Read | Matrix</title>
   
 
 
@@ -262,7 +263,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/28/hello-world/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/12/Write-Read/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="fjh">
@@ -279,7 +280,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Hello World</h1>
+          <h1 class="post-title" itemprop="name headline">Write-Read</h1>
         
 
         <div class="post-meta">
@@ -291,8 +292,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-28T18:04:45+08:00">
-                2019-02-28
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-04-12T19:09:01+08:00">
+                2019-04-12
               </time>
             
 
@@ -329,15 +330,7 @@
       
 
       
-        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+        <h1 id="PV操作"><a href="#PV操作" class="headerlink" title="PV操作"></a>PV操作</h1><h2 id="实现Write-Read模型"><a href="#实现Write-Read模型" class="headerlink" title="实现Write-Read模型"></a>实现Write-Read模型</h2><h3 id="写优先级"><a href="#写优先级" class="headerlink" title="写优先级"></a>写优先级</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> readcount = <span class="number">0</span>;	<span class="comment">//当前读者数目</span></span><br><span class="line"><span class="keyword">int</span> writecount = <span class="number">0</span>;</span><br><span class="line">semaphore rmutex = <span class="number">1</span>;	<span class="comment">//保护readcount的互斥信号量</span></span><br><span class="line">semaphore wmutex = <span class="number">1</span>;	<span class="comment">//保护writecount的互斥信号量</span></span><br><span class="line">semaphore <span class="built_in">queue</span> = <span class="number">1</span>;		<span class="comment">//读进程的等待队列</span></span><br><span class="line">semaphore w_sem = <span class="number">1</span>;		<span class="comment">//写进程的互斥信号量</span></span><br><span class="line">semaphore r_sem = <span class="number">1</span>;		<span class="comment">//读进程用来与写进程互斥的量</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">reader_thread</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="literal">true</span>) &#123;</span><br><span class="line">        semWait(<span class="built_in">queue</span>);</span><br><span class="line">        	semWait(r_sem);</span><br><span class="line">        		semWait(rmutex);	<span class="comment">//保证对readcount操作的原子性</span></span><br><span class="line">        			<span class="comment">//如果是第一个读者，则阻塞写进程</span></span><br><span class="line">        			<span class="keyword">if</span> (readcount == <span class="number">0</span>)	 semWait(w_sem);</span><br><span class="line">        			readcount++;</span><br><span class="line">        		semSignal(rmutex);</span><br><span class="line">        	semSignal(r_sem);</span><br><span class="line">        semSignal(<span class="built_in">queue</span>);</span><br><span class="line">        <span class="comment">// read data code</span></span><br><span class="line">        semWait(rmutex);	<span class="comment">//保证对readcount操作的原子性</span></span><br><span class="line">        	readcount--;</span><br><span class="line">        	<span class="comment">// 读者结束优先唤醒写者</span></span><br><span class="line">        	<span class="keyword">if</span> (readcount == <span class="number">0</span>)	 semSignal(w_sem);</span><br><span class="line">        semSignal(rmutex);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">writer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="literal">true</span>) &#123;</span><br><span class="line">        semWait(wmutex);	<span class="comment">// 保证对writecount操作的原子性</span></span><br><span class="line">        	<span class="keyword">if</span> (writecount == <span class="number">0</span>)	semWait(r_sem);</span><br><span class="line">        	writecount++;</span><br><span class="line">        semSignal(wmutex);</span><br><span class="line">       	semWait(w_sem);</span><br><span class="line">        <span class="comment">// write data code</span></span><br><span class="line">        semSignal(w_sem);</span><br><span class="line">        semWait(wmutex);</span><br><span class="line">        	writecount--;</span><br><span class="line">        	<span class="comment">// 当写完事后才释放读者的使用权</span></span><br><span class="line">        	<span class="keyword">if</span> (writecount == <span class="number">0</span>)	semSignal(r_sem);</span><br><span class="line">        semSignal(wmutex);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
       
     </div>
@@ -353,6 +346,12 @@
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/OS/" rel="tag"># OS</a>
+          
+        </div>
+      
 
       
       
@@ -362,14 +361,18 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/2019/04/09/cache结构/" rel="next" title="访存结构">
+                <i class="fa fa-chevron-left"></i> 访存结构
+              </a>
+            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2019/02/28/idea-debug/" rel="prev" title="idea-debug">
-                idea-debug <i class="fa fa-chevron-right"></i>
+              <a href="/2019/04/13/OS-lab3/" rel="prev" title="OS-lab3">
+                OS-lab3 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -502,7 +505,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Quick-Start"><span class="nav-number">1.</span> <span class="nav-text">Quick Start</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-a-new-post"><span class="nav-number">1.1.</span> <span class="nav-text">Create a new post</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Run-server"><span class="nav-number">1.2.</span> <span class="nav-text">Run server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Generate-static-files"><span class="nav-number">1.3.</span> <span class="nav-text">Generate static files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deploy-to-remote-sites"><span class="nav-number">1.4.</span> <span class="nav-text">Deploy to remote sites</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#PV操作"><span class="nav-number">1.</span> <span class="nav-text">PV操作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#实现Write-Read模型"><span class="nav-number">1.1.</span> <span class="nav-text">实现Write-Read模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#写优先级"><span class="nav-number">1.1.1.</span> <span class="nav-text">写优先级</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
