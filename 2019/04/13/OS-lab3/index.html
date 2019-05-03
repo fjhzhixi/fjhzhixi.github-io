@@ -104,7 +104,7 @@
 <meta property="og:image" content="http://yoursite.com/2019/04/13/OS-lab3/3.png">
 <meta property="og:image" content="http://yoursite.com/2019/04/13/OS-lab3/4.png">
 <meta property="og:image" content="http://yoursite.com/2019/04/13/OS-lab3/5.png">
-<meta property="og:updated_time" content="2019-04-15T11:22:44.809Z">
+<meta property="og:updated_time" content="2019-05-03T12:10:56.232Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="OS-lab3">
 <meta name="twitter:description" content="env进程结构管理先给大家安利一个神器：Understand，有了它，妈妈再也不担心我源码看吐了 首先神图镇楼  一点与lab3无关的在刚开始时，我个人一直疑惑的一个问题便是什么是OS的工作，而什么是硬件支持的工作，这个问题其实我现在还不是很清楚，下面写一点我的拙见：  关于地址：  页表项的填写是要操作系统来负责的，即在代码中显式填写 在代码中给一个虚拟地址来访问数据是由硬件支持的，并且他可以判">
@@ -605,8 +605,19 @@
 <p><img src="/2019/04/13/OS-lab3/5.png" alt></p>
 </li>
 </ul>
-<h2 id="一些难理解的底层操作"><a href="#一些难理解的底层操作" class="headerlink" title="一些难理解的底层操作"></a>一些难理解的底层操作</h2><p>待施工（<del>鸽了</del>）</p>
-
+<h3 id="进程切换"><a href="#进程切换" class="headerlink" title="进程切换"></a>进程切换</h3><p>在<code>lab3</code>中所有的进程切换都是时钟中断导致的</p>
+<p>流程如下 : (异常处理详见<code>lab4</code>)</p>
+<ol>
+<li>硬件完成 : 产生时间中断,CPU保存信息(异常原因,<code>EPC</code>等),跳转到异常分发代码</li>
+<li>软件完成 : <ol>
+<li>根据<code>CAUSE</code>寄存器中的<code>ExcCode</code>判断为时钟中断,跳转到对于的处理函数<code>hand_int</code></li>
+<li>处理函数进行异常的处理</li>
+<li>处理完之后返回,恢复运行</li>
+</ol>
+</li>
+</ol>
+<p>异常处理函数如下 :</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">NESTED(handle_int, TF_SIZE, sp)</span><br><span class="line">nop</span><br><span class="line">SAVE_ALL	<span class="comment">//保存现场,将寄存器的值压栈(TIMESTACK栈)</span></span><br><span class="line">CLI			<span class="comment">//异常处理中关闭时钟中断</span></span><br><span class="line">.<span class="built_in">set</span>	at</span><br><span class="line">mfc0	t0, CP0_CAUSE</span><br><span class="line">mfc0	t2, CP0_STATUS</span><br><span class="line"><span class="keyword">and</span>	t0, t2</span><br><span class="line">andi	t1, t0, STATUSF_IP4</span><br><span class="line">bnez	t1, timer_irq	<span class="comment">//timer_irq为真正的处理函数</span></span><br><span class="line">nop</span><br><span class="line">END(handle_int)</span><br><span class="line"></span><br><span class="line">timer_irq:</span><br><span class="line"><span class="number">1</span>:	j	sched_yield	<span class="comment">//异常处理即为切换进程</span></span><br><span class="line">	nop</span><br><span class="line">	j	ret_from_exception	<span class="comment">//恢复现场(其实不会恢复,因为j跳转不会记录返回地址)</span></span><br><span class="line">	<span class="comment">//真正的恢复寄存器的值应该是新调度运行的进程的,而不是老进程的,即由env_pop_tf函数完成</span></span><br><span class="line">	nop</span><br></pre></td></tr></table></figure>
       
     </div>
     
@@ -647,6 +658,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/05/03/OS-lab4/" rel="prev" title="OS-lab4">
+                OS-lab4 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -723,7 +738,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -745,7 +760,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
@@ -778,7 +793,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#env进程结构管理"><span class="nav-number">1.</span> <span class="nav-text">env进程结构管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#一点与lab3无关的"><span class="nav-number">1.1.</span> <span class="nav-text">一点与lab3无关的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本常数定义"><span class="nav-number">1.2.</span> <span class="nav-text">基本常数定义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#最大进程数目"><span class="nav-number">1.2.1.</span> <span class="nav-text">最大进程数目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程状态"><span class="nav-number">1.2.2.</span> <span class="nav-text">进程状态</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本数据结构"><span class="nav-number">1.3.</span> <span class="nav-text">基本数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#env进程管理块"><span class="nav-number">1.3.1.</span> <span class="nav-text">env进程管理块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#env-free-list"><span class="nav-number">1.3.2.</span> <span class="nav-text">env_free_list</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#env-sched-list"><span class="nav-number">1.3.3.</span> <span class="nav-text">env_sched_list</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程的状态转移"><span class="nav-number">1.3.4.</span> <span class="nav-text">进程的状态转移</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#对进程的操作"><span class="nav-number">1.4.</span> <span class="nav-text">对进程的操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#初始化控制结构"><span class="nav-number">1.4.1.</span> <span class="nav-text">初始化控制结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#构建控制块数组"><span class="nav-number">1.4.1.1.</span> <span class="nav-text">构建控制块数组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#初始化控制结构-1"><span class="nav-number">1.4.1.2.</span> <span class="nav-text">初始化控制结构</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建一个进程"><span class="nav-number">1.4.2.</span> <span class="nav-text">创建一个进程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#函数调用分析"><span class="nav-number">1.4.2.1.</span> <span class="nav-text">函数调用分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#流程分析"><span class="nav-number">1.4.2.2.</span> <span class="nav-text">流程分析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#分配进程所需资源"><span class="nav-number">1.4.2.2.1.</span> <span class="nav-text">分配进程所需资源</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#加载二进制映像"><span class="nav-number">1.4.2.2.2.</span> <span class="nav-text">加载二进制映像</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程运行"><span class="nav-number">1.4.3.</span> <span class="nav-text">进程运行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程调度"><span class="nav-number">1.4.4.</span> <span class="nav-text">进程调度</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一些难理解的底层操作"><span class="nav-number">1.5.</span> <span class="nav-text">一些难理解的底层操作</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#env进程结构管理"><span class="nav-number">1.</span> <span class="nav-text">env进程结构管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#一点与lab3无关的"><span class="nav-number">1.1.</span> <span class="nav-text">一点与lab3无关的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本常数定义"><span class="nav-number">1.2.</span> <span class="nav-text">基本常数定义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#最大进程数目"><span class="nav-number">1.2.1.</span> <span class="nav-text">最大进程数目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程状态"><span class="nav-number">1.2.2.</span> <span class="nav-text">进程状态</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本数据结构"><span class="nav-number">1.3.</span> <span class="nav-text">基本数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#env进程管理块"><span class="nav-number">1.3.1.</span> <span class="nav-text">env进程管理块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#env-free-list"><span class="nav-number">1.3.2.</span> <span class="nav-text">env_free_list</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#env-sched-list"><span class="nav-number">1.3.3.</span> <span class="nav-text">env_sched_list</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程的状态转移"><span class="nav-number">1.3.4.</span> <span class="nav-text">进程的状态转移</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#对进程的操作"><span class="nav-number">1.4.</span> <span class="nav-text">对进程的操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#初始化控制结构"><span class="nav-number">1.4.1.</span> <span class="nav-text">初始化控制结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#构建控制块数组"><span class="nav-number">1.4.1.1.</span> <span class="nav-text">构建控制块数组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#初始化控制结构-1"><span class="nav-number">1.4.1.2.</span> <span class="nav-text">初始化控制结构</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建一个进程"><span class="nav-number">1.4.2.</span> <span class="nav-text">创建一个进程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#函数调用分析"><span class="nav-number">1.4.2.1.</span> <span class="nav-text">函数调用分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#流程分析"><span class="nav-number">1.4.2.2.</span> <span class="nav-text">流程分析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#分配进程所需资源"><span class="nav-number">1.4.2.2.1.</span> <span class="nav-text">分配进程所需资源</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#加载二进制映像"><span class="nav-number">1.4.2.2.2.</span> <span class="nav-text">加载二进制映像</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程运行"><span class="nav-number">1.4.3.</span> <span class="nav-text">进程运行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程调度"><span class="nav-number">1.4.4.</span> <span class="nav-text">进程调度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程切换"><span class="nav-number">1.4.5.</span> <span class="nav-text">进程切换</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
