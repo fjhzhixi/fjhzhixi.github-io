@@ -259,6 +259,267 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/28/Java正则表达式/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="fjh">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Matrix">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/02/28/Java正则表达式/" itemprop="url">Java-Regular-expression</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-28T20:54:56+08:00">
+                2019-02-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index">
+                    <span itemprop="name">java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Regular-expression"><a href="#Regular-expression" class="headerlink" title="Regular expression"></a>Regular expression</h1><h2 id="通用规则"><a href="#通用规则" class="headerlink" title="通用规则"></a>通用规则</h2><h3 id="基本匹配"><a href="#基本匹配" class="headerlink" title="基本匹配"></a>基本匹配</h3><p>单纯的进行字符的逐个匹配(<strong>这里的字符不能在正则规则中有特殊含义,否则要进行转义才能匹配)</strong>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">例如the匹配theme中的the</span><br></pre></td></tr></table></figure>
+<h3 id="元字符匹配"><a href="#元字符匹配" class="headerlink" title="元字符匹配"></a>元字符匹配</h3><p>元字符具有特殊的含义</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">元字符</th>
+<th>特殊含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>\</code></td>
+<td>转义字符(详见下)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>^</code></td>
+<td>从开始行进行匹配,当正则表达式以<code>^</code>开头时表示匹配成功对象必须从字符串开头开始</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>$</code></td>
+<td>从末尾进行匹配,当正则表达式以<code>$</code>结尾时表示匹配成功对象必须以字符串结尾结束</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>.</code></td>
+<td>匹配任意单个字符(除了换行符)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>[]</code></td>
+<td>匹配中括号列表中的任意一个字符 <code>[a-z]表示范围内的任何一个字符</code></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>[^ ]</code></td>
+<td>匹配除了括号中字符之外的任何一个字符</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>*</code></td>
+<td>匹配0次或者大于0的任意次前一个字符(<strong>或者前一个子正则表达式</strong>)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>+</code></td>
+<td>匹配1次或者大于1的任意词前一个字符(<strong>或者前一个子正则表达式</strong>)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>?</code></td>
+<td>匹配0次或者1次前一个字符(<strong>或者前一个子正则表达式</strong>)</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>{n,m}</code></td>
+<td>匹配num(<code>n&lt;=num&lt;=m)</code>次前一个字符(<strong>或者前一个子正则表达式</strong>)<em>n缺省时为0,m缺省时为无穷大</em></td>
+</tr>
+<tr>
+<td style="text-align:center"><code>(xyz)</code></td>
+<td>匹配<code>()</code>中的表达式(<strong>用小括号来构造局部的子正则表达式</strong>)</td>
+</tr>
+<tr>
+<td style="text-align:center">`</td>
+<td>`</td>
+<td>正则表达式的或逻辑,任意匹配一个即可(<strong>注意在前面的子正则表达式优先匹配</strong>)</td>
+</tr>
+</tbody>
+</table>
+<p>注 : </p>
+<ul>
+<li><p>在Java中<code>\\</code>其转义作用</p>
+<ol>
+<li><p>使用<code>\\</code>表示某些特殊字符的含义[简写字符集]<em>(当这些字母单独出现时表示匹配自己对应的字母</em>)</p>
+<ul>
+<li><p><code>\\d</code>匹配数字字符<code>0 - 9</code>    <code>\\D</code>匹配非数字字符</p>
+</li>
+<li><p><code>\\n</code>匹配换行符</p>
+</li>
+<li><p><code>\\s</code>匹配任何空白字符           <code>\\S</code>匹配任何非空白符</p>
+<p>…….</p>
+</li>
+</ul>
+</li>
+<li><p>使用<code>\\</code>可以使某些具有特殊含义的字符匹配自己本身对应的字符*<em>(</em>当他们单独出现时在正则表达式中有特殊的含义*)</p>
+<ul>
+<li>特殊字符有<code>[]  ()  {}  .   *   +   ?    ^   $   \   |</code>等</li>
+<li>例如要匹配字符串<code>()</code>,Java正则表达式就要为<code>\\(\\)</code></li>
+</ul>
+</li>
+</ol>
+</li>
+<li><p><strong>使用<code>^</code>[reg_exp] <code>$</code>形式的正则表达式必须匹配整个字符串才算匹配成功</strong></p>
+<p>Java中的<code>String.match(reg, str)</code>方法默认会在reg加上<code>^</code>与<code>$</code>所以可以不写</p>
+</li>
+</ul>
+<h3 id="前后关联约束"><a href="#前后关联约束" class="headerlink" title="前后关联约束"></a>前后关联约束</h3><ol>
+<li><p>前置约束-存在  <code>?=....</code></p>
+<p><code>Reg(?=ConstraintReg)</code> : 表示匹配Reg表达式但是其后必须存在ConstraintReg表达式的匹配项</p>
+<p><code>[tT]he(?=\sfat) =&gt;</code><strong><code>The</code></strong> <code>fat car sat on the mat</code></p>
+</li>
+<li><p>前置约束-排除 <code>?!....</code></p>
+<p><code>Reg(?!ConstrainReg)</code> :  表示匹配Reg表达式但是其后必须不存在ConstraintReg表达式的匹配项</p>
+<p><code>[tT]he(?=\sfat) =&gt;</code> <code>The fat car sat on</code><strong><code>the</code></strong> <code>mat</code></p>
+</li>
+<li><p>后置约束-存在<code>?&lt;=....</code></p>
+<p><code>(?&lt;=ConstraintReg)Reg</code>: 表示匹配Reg表达式之前必须匹配ConstraintReg表达式</p>
+</li>
+<li><p>后置约束-排除<code>?&lt;!....</code></p>
+<p><code>(?&lt;!ConstraintReg)Reg</code>: 表示匹配Reg表达式之前必须不匹配ConstraintReg表达式</p>
+</li>
+</ol>
+<h3 id="标记"><a href="#标记" class="headerlink" title="标记"></a>标记</h3><ul>
+<li>标记<code>i</code>忽略大小写</li>
+<li>标记<code>g</code>进行全局搜索,返回所用成功匹配的串</li>
+<li>标记<code>?</code>表示非贪心匹配,对前面紧接的多种可能的规则匹配最短的可能(默认为贪心的  : 匹配所有可能中最长的)</li>
+</ul>
+<h2 id="Java相关类"><a href="#Java相关类" class="headerlink" title="Java相关类"></a>Java相关类</h2><p><strong>Pattern 与 Matcher类</strong></p>
+<h3 id="标准使用"><a href="#标准使用" class="headerlink" title="标准使用"></a>标准使用</h3><p>在<code>str</code>中寻找<code>reg</code>正则表达式的匹配</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Pattern pattern = Pattern.compile(reg);</span><br><span class="line">Matcher matcher = pattern.matcher(str);</span><br><span class="line"><span class="keyword">while</span>(matcher.find()) &#123;</span><br><span class="line">    String hit = matcher.group();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ul>
+<li><p>在<code>compile(reg)</code>中<code>reg</code>必须在最外侧用一个<code>()</code>包括,表示一个单独的捕获组</p>
+<p><strong>matcher从开始到结尾扫描字符串,每次返回一次的匹配结果</strong></p>
+</li>
+<li><p><code>matcher</code>提供<code>start()与end()</code>方法返回每次匹配的位置</p>
+</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/28/hello-world/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -424,7 +685,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-count">12</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -446,7 +707,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-count">15</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>

@@ -259,6 +259,340 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/06/Hadoop-Spark-in-WSL/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="fjh">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Matrix">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/06/Hadoop-Spark-in-WSL/" itemprop="url">Hadoop + Spark in WSL</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-09-06T22:49:08+08:00">
+                2019-09-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Hadoop-Spark-环境配置"><a href="#Hadoop-Spark-环境配置" class="headerlink" title="Hadoop + Spark 环境配置"></a>Hadoop + Spark 环境配置</h1><p>北航大数据导论课设需要</p>
+<p>笔者是在<code>WSL(Windows Subsystem for Linux)</code> 或者 直接在<code>Ubuntu</code>双系统上</p>
+<h2 id="安装SSH"><a href="#安装SSH" class="headerlink" title="安装SSH"></a>安装SSH</h2><p>打开终端</p>
+<ol>
+<li>安装<code>SSH</code><ol>
+<li><code>sudo apt-get update</code></li>
+<li><code>sudo apt-get install openssh-server</code></li>
+</ol>
+</li>
+<li>运行<code>SSH</code><ol>
+<li>生成密匙 : <ol>
+<li><code>ssh-keygen -t rsa -P &#39;&#39; -f ~/.ssh/id_rsa</code></li>
+<li><code>cat ~/.ssh/id_rsa.pub &gt;&gt; ~/.ssh/authorized_keys</code></li>
+</ol>
+</li>
+<li>连接本机检查是否安装成功<ol>
+<li><code>ssh localhost</code>连接</li>
+<li><code>exit</code>退出</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<p><strong>笔者遇到的问题</strong> : 在运行<code>ssh localhost</code>之后出现以下报错</p>
+<ol>
+<li><p>报错信息 : <code>connect to host localhost port 22: Connection refused</code> </p>
+<p>原因 : <code>ssh</code>服务没有开启</p>
+<p>解决 : </p>
+<ul>
+<li><p>检查<code>ssh</code>服务是否运行 : <code>/etc/init.d/ssh status</code></p>
+<p>返回 <code>* sshd is not running</code> 说明没有开启</p>
+</li>
+<li><p>开启<code>ssh</code>服务 : <code>/etc/init.d/ssh start</code></p>
+</li>
+</ul>
+</li>
+<li><p>报错信息 : <code>Permission denied (publickey)</code></p>
+<p>原因 : 目录权限设置不对</p>
+<p>解决 : 设置权限</p>
+<ul>
+<li><code>chmod go-w ~/</code></li>
+<li><code>chmod 700 ~/.ssh</code></li>
+<li><code>chmod 600 ~/.ssh/authorized_keys</code></li>
+</ul>
+</li>
+</ol>
+<p>最终成功之后运行<code>ssh location</code>结果为</p>
+<p><img src="/2019/09/06/Hadoop-Spark-in-WSL/ssh.png" alt></p>
+<h2 id="配置Java环境"><a href="#配置Java环境" class="headerlink" title="配置Java环境"></a>配置Java环境</h2><p>注意 : </p>
+<ol>
+<li>根据自己下载的<code>JDK</code>的版本要更改配置或者命令行中的文件名</li>
+<li>万能大法 : 命令失败时先加<code>sudo</code>试试</li>
+</ol>
+<p>流程 : </p>
+<h3 id="下载安装JDK"><a href="#下载安装JDK" class="headerlink" title="下载安装JDK"></a>下载安装JDK</h3><ol>
+<li><p>下载<code>JDK</code>安装包 : <a href="https://www.oracle.com/java/technologies/javase-jsp-downloads.html" target="_blank" rel="noopener">https://www.oracle.com/java/technologies/javase-jsp-downloads.html</a></p>
+<p>以笔者下载的<code>jdk-8u221-linux-x64.tar.gz</code>为例</p>
+</li>
+<li><p>新建<code>/usr/local/java</code>目录, 存放各个版本的<code>JDk</code></p>
+</li>
+<li><p>解压文件到2中目录下 : <code>tar -zxvf jdk-8u144-linux-x64.tar.gz -C /usr/local/java/</code></p>
+</li>
+<li><p>为方便起见将其重命名为<code>java1.8</code> : <code>mv jdk1.8.0_221 java1.8</code></p>
+</li>
+</ol>
+<h3 id="设置系统变量"><a href="#设置系统变量" class="headerlink" title="设置系统变量"></a>设置系统变量</h3><ol>
+<li><p><code>sudo vim /etc/profile</code>(直接配置全局环境,配置该用户环境修改<code>~/.bashrc</code>)</p>
+</li>
+<li><p>在最后一行加上<code>java</code>系统变量路径</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">export JAVA_HOME=/usr/local/java1.8		//该路径视自己情况定</span><br><span class="line">export JAVA_BIN=$JAVA_HOME/bin</span><br><span class="line">export JAVA_LIB=$JAVA_HOME/lib</span><br><span class="line">export CLASSPATH=.:$JAVA_LIB/tools.jar:$JAVA_LIB/dt.jar </span><br><span class="line">export PATH=$JAVA_HOME/bin:$PATH</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>source /etc/profile</code>使配置生效</p>
+</li>
+</ol>
+<h3 id="检查配置是否成功"><a href="#检查配置是否成功" class="headerlink" title="检查配置是否成功"></a>检查配置是否成功</h3><p>运行<code>java -version</code>,应当返回<code>JDK</code>的版本信息 :</p>
+<p><img src="/2019/09/06/Hadoop-Spark-in-WSL/java.png" alt></p>
+<h2 id="安装Hadoop并配置单机版"><a href="#安装Hadoop并配置单机版" class="headerlink" title="安装Hadoop并配置单机版"></a>安装Hadoop并配置单机版</h2><p>注 : 以下大部分地址时国内镜像,可能不是最新版本,科学上网选手可以去官网下最新版本</p>
+<h3 id="安装Hadoop"><a href="#安装Hadoop" class="headerlink" title="安装Hadoop"></a>安装Hadoop</h3><ol>
+<li><p>下载 : <a href="https://mirrors.tuna.tsinghua.edu.cn/apache/" target="_blank" rel="noopener">https://mirrors.tuna.tsinghua.edu.cn/apache/</a> 为<code></code>Apache`的国内镜像</p>
+</li>
+<li><p>解压下载文件 : <code>sudo tar zxvf hadoop-2.7.4.tar.gz -C /usr/local</code></p>
+</li>
+<li><p>为方便起见重命名并赋予权限</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd /usr/local</span><br><span class="line">sudo mv hadoop-2.7.4 hadoop 	//根据具体版本更改</span><br><span class="line">sudo chmod 777 -R /usr/local/Hadoop</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h3><ol>
+<li><p>配置系统变量文件</p>
+<ol>
+<li><p><code>sudo vim ~/.bashrc</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#HADOOP VARIABLES START </span><br><span class="line">export JAVA_HOME=/usr/local/java/jdk1.8</span><br><span class="line">export HADOOP_INSTALL=/usr/local/hadoop</span><br><span class="line">export PATH=$PATH:$HADOOP_INSTALL/bin</span><br><span class="line">export PATH=$PATH:$HADOOP_INSTALL/sbin</span><br><span class="line">export HADOOP_MAPRED_HOME=$HADOOP_INSTALL </span><br><span class="line">export HADOOP_COMMON_HOME=$HADOOP_INSTALL </span><br><span class="line">export HADOOP_HDFS_HOME=$HADOOP_INSTALL </span><br><span class="line">export YARN_HOME=$HADOOP_INSTALL </span><br><span class="line">export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_INSTALL/lib/native</span><br><span class="line">export HADOOP_OPTS=&quot;-Djava.library.path=$HADOOP_INSTALL/lib&quot;</span><br><span class="line">#HADOOP VARIABLES END</span><br></pre></td></tr></table></figure>
+<p><code>source ~/.bashrc</code>生效配置</p>
+</li>
+<li><p><code>sudo vim /usr/local/hadoop/etc/hadoop/hadoop-env.sh</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># The java implementation to use. </span><br><span class="line">export JAVA_HOME=/usr/local/java/jdk1.8</span><br><span class="line">export HADOOP=/usr/local/hadoop</span><br><span class="line">export PATH=$PATH:/usr/local/hadoop/bin</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>sudo vim /usr/local/hadoop/etc/hadoop/yarn-env.sh</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">JAVA_HOME=/usr/local/java/jdk1.8</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+<li><p>修改<code>Hadoop</code>配置文件</p>
+<p>注意 : 确保配置文件中只有一对<code>&lt;configuration&gt; &lt; /configuration &gt;</code></p>
+<ol>
+<li><p><code>core-site.xml</code></p>
+<ul>
+<li><p><code>sudo vim /usr/local/hadoop/etc/hadoop/core-site.xml</code></p>
+</li>
+<li><p>添加以下内容</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">name</span>&gt;</span>hadoop.tmp.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">value</span>&gt;</span>file:/usr/local/hadoop/tmp<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">description</span>&gt;</span>Abase for other temporary directories.<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">name</span>&gt;</span>fs.defaultFS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://localhost:9000<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p><code>hdfs-site.xml</code></p>
+<ul>
+<li><p><code>sudo vim /usr/local/hadoop/etc/hadoop/hdfs-site.xml</code></p>
+</li>
+<li><p>添加以下内容</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.replication<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">value</span>&gt;</span>1<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.namenode.name.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">value</span>&gt;</span>file:/usr/local/hadoop/tmp/dfs/name<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.datanode.data.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">value</span>&gt;</span>file:/usr/local/hadoop/tmp/dfs/data<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    	<span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.http.address<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://localhost::50070<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p><code>yarn-site.xml</code></p>
+<ul>
+<li><p><code>sudo vim /usr/local/hadoop/etc/hadoop/yarn-site.xml</code></p>
+</li>
+<li><p>添加以下内容</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span> </span><br><span class="line"><span class="comment">&lt;!-- Site specific YARN configuration properties --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span> </span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.nodemanager.aux-services<span class="tag">&lt;/<span class="name">name</span>&gt;</span> </span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>mapreduce_shuffle<span class="tag">&lt;/<span class="name">value</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span> </span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.nodemanager.aux-services.mapreduce.shuffle.class<span class="tag">&lt;/<span class="name">name</span>&gt;</span> </span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>org.apache.hadoop.mapred.ShuffleHandler<span class="tag">&lt;/<span class="name">value</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span> </span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.resourcemanager.address<span class="tag">&lt;/<span class="name">name</span>&gt;</span> </span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>127.0.0.1:8032<span class="tag">&lt;/<span class="name">value</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span> </span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.resourcemanager.scheduler.address<span class="tag">&lt;/<span class="name">name</span>&gt;</span> </span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>127.0.0.1:8030<span class="tag">&lt;/<span class="name">value</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span>&gt;</span> </span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.resourcemanager.resource-tracker.address<span class="tag">&lt;/<span class="name">name</span>&gt;</span> </span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>127.0.0.1:8031<span class="tag">&lt;/<span class="name">value</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;/<span class="name">property</span>&gt;</span> </span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="检验"><a href="#检验" class="headerlink" title="检验"></a>检验</h3><p>注 : 对<code>hadoop</code>的操作都在<code>/usr/local/hadoop/sbin</code>文件夹的<code>.sh</code>脚本中</p>
+<ol>
+<li><p><code>hadoop version</code> : 查看<code>hadoop</code>版本信息</p>
+<p><img src="/2019/09/06/Hadoop-Spark-in-WSL/hadoop-v.png" alt></p>
+</li>
+<li><p><code>hdfs namenode -format</code> 格式化<code>namenode</code>(<strong>注意只需要格式化一次,之后不用再格式化</strong>)</p>
+<p>注 : 多次格式化之后的补救措施:</p>
+<ol>
+<li>停止运行 : <code>stop-all.sh</code></li>
+<li>删除<code>usr/local/hadoop/tmp/dfs/data</code>文件夹</li>
+<li>重新运行</li>
+</ol>
+</li>
+<li><p>启动 : <code>start-all.sh</code></p>
+</li>
+<li><p><code>jps</code></p>
+<p><img src="/2019/09/06/Hadoop-Spark-in-WSL/nodes.png" alt></p>
+</li>
+<li><p>访问 : <a href="http://localhost:50070/" target="_blank" rel="noopener">http://localhost:50070/</a></p>
+<p><img src="/2019/09/06/Hadoop-Spark-in-WSL/50070.png" alt></p>
+</li>
+<li><p>访问 : <a href="http://localhost:8088/" target="_blank" rel="noopener">http://localhost:8088/</a></p>
+<p><img src="/2019/09/06/Hadoop-Spark-in-WSL/8088.png" alt></p>
+</li>
+<li><p>停止 : <code>stop-all.sh</code></p>
+</li>
+</ol>
+<h2 id="安装Spark"><a href="#安装Spark" class="headerlink" title="安装Spark"></a>安装Spark</h2><h3 id="Scala环境配置"><a href="#Scala环境配置" class="headerlink" title="Scala环境配置"></a>Scala环境配置</h3><ol>
+<li><p>下载地址 : <a href="http://distfiles.macports.org/scala2.10/" target="_blank" rel="noopener">http://distfiles.macports.org/scala2.10/</a></p>
+</li>
+<li><p>解压文件 : <code>sudo tar zxvf scala-2.11.8.tgz -C /usr/local/</code></p>
+</li>
+<li><p>方便起见重命名</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /usr/local/</span><br><span class="line">sudo mv scala-2.11.8 scala</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>配置系统环境变量</p>
+<p><code>sudo vim /etc/profile</code>,添加以下内容</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">JAVA_HOME=/usr/local/java/jdk1.8</span><br><span class="line">SCALA_HOME=/usr/local/scala</span><br><span class="line">PATH=$PATH:$HOME/bin:$JAVA_HOME/bin:$SCALA/bin</span><br><span class="line">export SCALA_HOME</span><br><span class="line">export JAVA_HOME</span><br><span class="line">export PATH</span><br></pre></td></tr></table></figure>
+<p><code>source /etc/profile</code>激活</p>
+</li>
+<li><p>测试 : <code>scala -version</code></p>
+</li>
+</ol>
+<h3 id="Spark安装"><a href="#Spark安装" class="headerlink" title="Spark安装"></a>Spark安装</h3><ol>
+<li><p>下载地址 : <a href="https://mirrors.tuna.tsinghua.edu.cn/apache" target="_blank" rel="noopener">https://mirrors.tuna.tsinghua.edu.cn/apache</a></p>
+</li>
+<li><p>解压 : <code>sudo tar zxvf spark-2.3.1-bin-hadoop2.7.tgz  -C /usr/local/</code></p>
+</li>
+<li><p>为方便重命名 : </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /usr/local/</span><br><span class="line">sudo mv spark-2.3.1-bin-hadoop2.7 spark</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>配置系统环境变量</p>
+<p><code>sudo vim /etc/profile</code>,添加以下内容</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">JAVA_HOME=/usr/local/java/jdk1.8</span><br><span class="line">SCALA_HOME=/usr/local/scala</span><br><span class="line">SPARK_HOME=/usr/local/spark</span><br><span class="line">PATH=$PATH:$HOME/bin:$JAVA_HOME/bin:$SCALA/bin:$SPARK/bin</span><br><span class="line">export SCALA_HOME</span><br><span class="line">export SPARK_HOME</span><br><span class="line">export JAVA_HOME</span><br><span class="line">export PATH</span><br></pre></td></tr></table></figure>
+<p><code>source /etc/profile</code>激活</p>
+</li>
+<li><p>配置<code>spark</code>设置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp spark-env.sh.template spark-env.sh</span><br><span class="line">vim spark-env.sh</span><br></pre></td></tr></table></figure>
+<p>添加以下内容</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">export JAVA_HOME=/usr/local/java/jdk1.8</span><br><span class="line">export HADOOP_HOME=/usr/local/hadoop</span><br><span class="line">export HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop</span><br><span class="line">export SCALA_HOME=/usr/local/scala</span><br><span class="line">export SPARK_HOME=/usr/local/spark</span><br><span class="line">export SPARK_MASTER_HOST=127.0.0.1</span><br><span class="line">export SPARK_MASTER_PORT=7077</span><br><span class="line">export SPARK_MASTER_WEBUI_PORT=8099</span><br><span class="line">export SPARK_LOCAL_IP=127.0.0.1</span><br><span class="line">export SPARK_WORKER_CORES=3</span><br><span class="line">export SPARK_WORKER_INSTANCES=1</span><br><span class="line">export SPARK_WORKER_MEMORY=5G</span><br><span class="line">export SPARK_WORKER_WEBUI_PORT=8081</span><br><span class="line">export SPARK_EXECUTOR_CORES=1</span><br><span class="line">export SPARK_EXECUTOR_MEMORY=1G</span><br><span class="line">export LD_LIBRARY_PATH=$&#123;LD_LIBRARY_PATH&#125;:$HADOOP_HOME/lib/native</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>测试</p>
+<ol>
+<li><p>先启动<code>Hadoop</code></p>
+</li>
+<li><p>启动<code>Spark</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd /usr/local/spark/sbin</span><br><span class="line">./start-master.sh</span><br><span class="line">./start-slaves.sh</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>访问 : <a href="http://127.0.0.1:8099/" target="_blank" rel="noopener">http://127.0.0.1:8099/</a></p>
+<p><img src="/2019/09/06/Hadoop-Spark-in-WSL/spark.png" alt></p>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="简单使用"><a href="#简单使用" class="headerlink" title="简单使用"></a>简单使用</h2><p><code>Spark</code>是基于<code>Hadoop</code>的 : </p>
+<ol>
+<li><code>start-all.sh</code>命令启动<code>Hadoop</code>的节点</li>
+<li>进入<code>usr/local/spark/sbin</code>中<code>./start-all.sh</code>启动<code>master</code>和<code>worker</code></li>
+<li>先在该目录下<code>./stop-all.sh</code>停止<code>spark</code>服务</li>
+<li>在<code>stop-all.sh</code>停止<code>Hadoop</code>服务</li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/02/mysql安装/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2471,267 +2805,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/28/Java正则表达式/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="fjh">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Matrix">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/02/28/Java正则表达式/" itemprop="url">Java-Regular-expression</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-28T20:54:56+08:00">
-                2019-02-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/java/" itemprop="url" rel="index">
-                    <span itemprop="name">java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Regular-expression"><a href="#Regular-expression" class="headerlink" title="Regular expression"></a>Regular expression</h1><h2 id="通用规则"><a href="#通用规则" class="headerlink" title="通用规则"></a>通用规则</h2><h3 id="基本匹配"><a href="#基本匹配" class="headerlink" title="基本匹配"></a>基本匹配</h3><p>单纯的进行字符的逐个匹配(<strong>这里的字符不能在正则规则中有特殊含义,否则要进行转义才能匹配)</strong>:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">例如the匹配theme中的the</span><br></pre></td></tr></table></figure>
-<h3 id="元字符匹配"><a href="#元字符匹配" class="headerlink" title="元字符匹配"></a>元字符匹配</h3><p>元字符具有特殊的含义</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:center">元字符</th>
-<th>特殊含义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:center"><code>\</code></td>
-<td>转义字符(详见下)</td>
-</tr>
-<tr>
-<td style="text-align:center"><code>^</code></td>
-<td>从开始行进行匹配,当正则表达式以<code>^</code>开头时表示匹配成功对象必须从字符串开头开始</td>
-</tr>
-<tr>
-<td style="text-align:center"><code>$</code></td>
-<td>从末尾进行匹配,当正则表达式以<code>$</code>结尾时表示匹配成功对象必须以字符串结尾结束</td>
-</tr>
-<tr>
-<td style="text-align:center"><code>.</code></td>
-<td>匹配任意单个字符(除了换行符)</td>
-</tr>
-<tr>
-<td style="text-align:center"><code>[]</code></td>
-<td>匹配中括号列表中的任意一个字符 <code>[a-z]表示范围内的任何一个字符</code></td>
-</tr>
-<tr>
-<td style="text-align:center"><code>[^ ]</code></td>
-<td>匹配除了括号中字符之外的任何一个字符</td>
-</tr>
-<tr>
-<td style="text-align:center"><code>*</code></td>
-<td>匹配0次或者大于0的任意次前一个字符(<strong>或者前一个子正则表达式</strong>)</td>
-</tr>
-<tr>
-<td style="text-align:center"><code>+</code></td>
-<td>匹配1次或者大于1的任意词前一个字符(<strong>或者前一个子正则表达式</strong>)</td>
-</tr>
-<tr>
-<td style="text-align:center"><code>?</code></td>
-<td>匹配0次或者1次前一个字符(<strong>或者前一个子正则表达式</strong>)</td>
-</tr>
-<tr>
-<td style="text-align:center"><code>{n,m}</code></td>
-<td>匹配num(<code>n&lt;=num&lt;=m)</code>次前一个字符(<strong>或者前一个子正则表达式</strong>)<em>n缺省时为0,m缺省时为无穷大</em></td>
-</tr>
-<tr>
-<td style="text-align:center"><code>(xyz)</code></td>
-<td>匹配<code>()</code>中的表达式(<strong>用小括号来构造局部的子正则表达式</strong>)</td>
-</tr>
-<tr>
-<td style="text-align:center">`</td>
-<td>`</td>
-<td>正则表达式的或逻辑,任意匹配一个即可(<strong>注意在前面的子正则表达式优先匹配</strong>)</td>
-</tr>
-</tbody>
-</table>
-<p>注 : </p>
-<ul>
-<li><p>在Java中<code>\\</code>其转义作用</p>
-<ol>
-<li><p>使用<code>\\</code>表示某些特殊字符的含义[简写字符集]<em>(当这些字母单独出现时表示匹配自己对应的字母</em>)</p>
-<ul>
-<li><p><code>\\d</code>匹配数字字符<code>0 - 9</code>    <code>\\D</code>匹配非数字字符</p>
-</li>
-<li><p><code>\\n</code>匹配换行符</p>
-</li>
-<li><p><code>\\s</code>匹配任何空白字符           <code>\\S</code>匹配任何非空白符</p>
-<p>…….</p>
-</li>
-</ul>
-</li>
-<li><p>使用<code>\\</code>可以使某些具有特殊含义的字符匹配自己本身对应的字符*<em>(</em>当他们单独出现时在正则表达式中有特殊的含义*)</p>
-<ul>
-<li>特殊字符有<code>[]  ()  {}  .   *   +   ?    ^   $   \   |</code>等</li>
-<li>例如要匹配字符串<code>()</code>,Java正则表达式就要为<code>\\(\\)</code></li>
-</ul>
-</li>
-</ol>
-</li>
-<li><p><strong>使用<code>^</code>[reg_exp] <code>$</code>形式的正则表达式必须匹配整个字符串才算匹配成功</strong></p>
-<p>Java中的<code>String.match(reg, str)</code>方法默认会在reg加上<code>^</code>与<code>$</code>所以可以不写</p>
-</li>
-</ul>
-<h3 id="前后关联约束"><a href="#前后关联约束" class="headerlink" title="前后关联约束"></a>前后关联约束</h3><ol>
-<li><p>前置约束-存在  <code>?=....</code></p>
-<p><code>Reg(?=ConstraintReg)</code> : 表示匹配Reg表达式但是其后必须存在ConstraintReg表达式的匹配项</p>
-<p><code>[tT]he(?=\sfat) =&gt;</code><strong><code>The</code></strong> <code>fat car sat on the mat</code></p>
-</li>
-<li><p>前置约束-排除 <code>?!....</code></p>
-<p><code>Reg(?!ConstrainReg)</code> :  表示匹配Reg表达式但是其后必须不存在ConstraintReg表达式的匹配项</p>
-<p><code>[tT]he(?=\sfat) =&gt;</code> <code>The fat car sat on</code><strong><code>the</code></strong> <code>mat</code></p>
-</li>
-<li><p>后置约束-存在<code>?&lt;=....</code></p>
-<p><code>(?&lt;=ConstraintReg)Reg</code>: 表示匹配Reg表达式之前必须匹配ConstraintReg表达式</p>
-</li>
-<li><p>后置约束-排除<code>?&lt;!....</code></p>
-<p><code>(?&lt;!ConstraintReg)Reg</code>: 表示匹配Reg表达式之前必须不匹配ConstraintReg表达式</p>
-</li>
-</ol>
-<h3 id="标记"><a href="#标记" class="headerlink" title="标记"></a>标记</h3><ul>
-<li>标记<code>i</code>忽略大小写</li>
-<li>标记<code>g</code>进行全局搜索,返回所用成功匹配的串</li>
-<li>标记<code>?</code>表示非贪心匹配,对前面紧接的多种可能的规则匹配最短的可能(默认为贪心的  : 匹配所有可能中最长的)</li>
-</ul>
-<h2 id="Java相关类"><a href="#Java相关类" class="headerlink" title="Java相关类"></a>Java相关类</h2><p><strong>Pattern 与 Matcher类</strong></p>
-<h3 id="标准使用"><a href="#标准使用" class="headerlink" title="标准使用"></a>标准使用</h3><p>在<code>str</code>中寻找<code>reg</code>正则表达式的匹配</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Pattern pattern = Pattern.compile(reg);</span><br><span class="line">Matcher matcher = pattern.matcher(str);</span><br><span class="line"><span class="keyword">while</span>(matcher.find()) &#123;</span><br><span class="line">    String hit = matcher.group();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ul>
-<li><p>在<code>compile(reg)</code>中<code>reg</code>必须在最外侧用一个<code>()</code>包括,表示一个单独的捕获组</p>
-<p><strong>matcher从开始到结尾扫描字符串,每次返回一次的匹配结果</strong></p>
-</li>
-<li><p><code>matcher</code>提供<code>start()与end()</code>方法返回每次匹配的位置</p>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/28/cmd-command/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -3135,7 +3208,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-count">12</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -3157,7 +3230,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-count">15</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
